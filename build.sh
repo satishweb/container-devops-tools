@@ -123,10 +123,10 @@ __validations() {
 __checkSource() {
   # Lets do git pull if push is enabled
   if [[ "$imgPush" == "yes" ]]; then
-    git checkout master >/dev/null 2>&1
-    __errCheck "$?" "Git checkout to master branch failed..."
+    git checkout main >/dev/null 2>&1
+    __errCheck "$?" "Git checkout to main branch failed..."
     git pull >/dev/null 2>&1
-    __errCheck "$?" "Git pull for master branch failed..."
+    __errCheck "$?" "Git pull for main branch failed..."
   fi
 }
 
