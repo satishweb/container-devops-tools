@@ -1,0 +1,5 @@
+templated-output*.yaml
+.DS_Store
+tmp
+.idea
+*.iml
