@@ -113,13 +113,13 @@ COPY files/.tmux.conf ${HOME}/.tmux.conf
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
 
-ARG KUBECTL_VERSION 1.27.0
+ARG KUBECTL_VERSION v1.27.0
 
 # Install kubectl
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" && \
+    curl -sSfLO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl && \
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
@@ -127,7 +127,7 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${OS}_${ARCH}.tar.gz" | tar xz -C . && \
+    curl -sSfL https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${OS}_${ARCH}.tar.gz | tar xz -C . && \
     sudo install -o root -g root -m 0755 eksctl /usr/local/bin/eksctl && \
     rm eksctl
 
@@ -150,7 +150,7 @@ RUN cd "$(mktemp -d)" && \
 # Install terrascan
 RUN cd "$(mktemp -d)" && \
     ARCH="$(uname -m | sed -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_${ARCH}.tar.gz")" > terrascan.tar.gz && \
+    curl -sSfL $(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_${ARCH}.tar.gz") > terrascan.tar.gz && \
     tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && \
     sudo install -o root -g root -m 0755 terrascan /usr/local/bin/terrascan && \
     rm terrascan
@@ -166,7 +166,7 @@ RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
     KREW="krew-${OS}_${ARCH}" && \
-    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" && \
+    curl -fsSLO https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz && \
     tar zxvf "${KREW}.tar.gz" && \
     sudo install -o root -g root -m 0755 "${KREW}" /usr/local/bin/kubectl-krew && \
     rm "${KREW}" *.tar.gz
