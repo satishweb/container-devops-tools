@@ -274,7 +274,7 @@ RUN git clone https://github.com/johanhaleby/kubetail.git ${HOME}/.oh-my-zsh/cus
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-${OS}-${ARCH}" && \
+    curl -sSL -o vcluster https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-${OS}-${ARCH} && \
     sudo install -c -m 0755 vcluster /usr/local/bin && \
     rm -f vcluster
 
@@ -282,7 +282,7 @@ RUN cd $(mktemp -d) && \
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -fLo telepresence https://app.getambassador.io/download/tel2/${OS}/${ARCH}/latest/telepresence && \
+    curl -sSL -o telepresence https://app.getambassador.io/download/tel2/${OS}/${ARCH}/latest/telepresence && \
     sudo install -c -m 0755 telepresence /usr/local/bin && \
     rm -f telepresence
 
@@ -290,7 +290,7 @@ RUN cd $(mktemp -d) && \
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -L -o devspace "https://github.com/loft-sh/devspace/releases/latest/download/devspace-${OS}-${ARCH}" && \
+    curl -sSL -o devspace https://github.com/loft-sh/devspace/releases/latest/download/devspace-${OS}-${ARCH} && \
     sudo install -c -m 0755 devspace /usr/local/bin && \
     rm -f devspace
 
@@ -298,7 +298,7 @@ RUN cd $(mktemp -d) && \
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -L -o skaffold "https://storage.googleapis.com/skaffold/releases/latest/skaffold-${OS}-${ARCH}" && \
+    curl -sSL -o skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-${OS}-${ARCH} && \
     sudo install -c -m 0755 skaffold /usr/local/bin && \
     rm -f skaffold
 
