@@ -23,6 +23,6 @@ services:
       - ${HOME}/.gitconfig:${HOME}/.gitconfig
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.docker:${HOME}/.docker
-      - ${HOME}/Documents:${HOME}/Documents
+      # - ${HOME}/Documents:${HOME}/Documents
       # - ./entrypoint.sh:/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock

@@ -13,8 +13,9 @@
 - Install docker-compose
 
 ## How to run the DevOps Tools container:
-`FIXUID=$(id -u) FIXGID=$(id -g) docker compose up -d`
-`docker exec -it devops-tools zsh`
+- `cp docker-compose-template.yaml docker-compose.yaml`
+- `FIXUID=$(id -u) FIXGID=$(id -g) docker compose up -d`
+- `docker exec -it devops-tools zsh`
 
 ## Troubleshooting
 Error: `saml2aws complains about .saml2aws being a directory`
