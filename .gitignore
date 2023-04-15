@@ -3,3 +3,4 @@ templated-output*.yaml
 tmp
 .idea
 *.iml
+docker-compose.yaml
