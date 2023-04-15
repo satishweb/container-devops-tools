@@ -5,6 +5,8 @@
 ### Setup: Mac
 - `brew install colima`
 - `colima start --cpu 8 --memory 8 --disk 150`
+- `sudo rm /var/run/docker.sock`
+- `sudo ln -s ${HOME}/.colima/default/docker.sock /var/run/docker.sock`
 
 ### Setup: Linux
 - Install Docker cli + Containerd
