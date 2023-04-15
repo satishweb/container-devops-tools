@@ -104,7 +104,7 @@ __dockerBuild(){
   tagParams=""
   for i in $2; do tagParams+=" -t $1:$i"; done
   # shellcheck disable=SC2086
-  docker buildx build --platform "$3" $5 $tagParams "$4"
+  sudo docker buildx build --platform "$3" $5 $tagParams "$4"
   __errCheck "$?" "Docker Build failed"
 }
 
@@ -113,7 +113,7 @@ __validations() {
   ! [[ "$tagPush" =~ ^(yes|no)$ ]] && tagPush=no
 
   # Check for buildx env
-  if [[ "$(docker buildx ls\
+  if [[ "$(sudo docker buildx ls\
            |grep -ce '.*default.*running.*linux/amd64' \
           )" -lt "1" ]]; then
     __errCheck "1" "Docker buildx env is not setup, please fix it"
@@ -121,25 +121,26 @@ __validations() {
 }
 
 __checkSource() {
-  # Lets do git pull if push is enabled
-  if [[ "$imgPush" == "yes" ]]; then
-    git checkout main >/dev/null 2>&1
-    __errCheck "$?" "Git checkout to main branch failed..."
-    git pull >/dev/null 2>&1
-    __errCheck "$?" "Git pull for main branch failed..."
-  fi
+  echo hi
+  # # Lets do git pull if push is enabled
+  # if [[ "$imgPush" == "yes" ]]; then
+  #   # git checkout main >/dev/null 2>&1
+  #   # __errCheck "$?" "Git checkout to main branch failed..."
+  #   # git pull >/dev/null 2>&1
+  #   # __errCheck "$?" "Git pull for main branch failed..."
+  # fi
 }
 
 __setupDocker() {
   # Lets prepare docker image
   if [[ "$imgPush" == "yes" ]]; then
     echo "INFO: Logging in to Docker HUB... (Interactive Mode)"
-    docker login 2>&1 | sed 's/^/INFO: DOCKER: /g'
+    sudo docker login 2>&1 | sed 's/^/INFO: DOCKER: /g'
     __errCheck "$?" "Docker login failed..."
     extraDockerArgs+=" --push"
   fi
-  docker buildx create --name builder >/dev/null 2>&1
-  docker buildx use builder >/dev/null 2>&1
+  sudo docker buildx create --name builder >/dev/null 2>&1
+  sudo docker buildx use builder >/dev/null 2>&1
   __errCheck "$?" "Could not use docker buildx default runner..."
 }
 
