@@ -88,7 +88,6 @@ RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
 RUN apt-get update \
   && apt-get -y install \
     python3-pygments \
-    awscli \
     docker-ce-cli \
     docker-compose-plugin \
     docker-buildx-plugin \
@@ -115,6 +114,15 @@ COPY files/.tmux.conf ${HOME}/.tmux.conf
 RUN echo "set mouse-=a" >> ~/.vimrc
 
 ARG KUBECTL_VERSION v1.27.0
+
+# Install awscli2
+RUN cd "$(mktemp -d)" && \
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    curl -sSfLO https://awscli-exe-${OS}-${ARCH}.zip -o awscli.zip && \
+    unzip awscli.zip && \
+    sudo ./aws/install && \
+    rm -rf aws *.zip
 
 # Install kubectl
 RUN cd "$(mktemp -d)" && \
