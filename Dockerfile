@@ -119,7 +119,7 @@ ARG KUBECTL_VERSION v1.27.0
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfLO https://awscli-exe-${OS}-${ARCH}.zip -o awscli.zip && \
+    curl -sSfLO https://awscli.amazonaws.com/awscli-exe-${OS}-${ARCH}.zip -o awscli.zip && \
     unzip awscli.zip && \
     sudo ./aws/install && \
     rm -rf aws *.zip
