@@ -94,6 +94,7 @@ RUN apt-get update \
     terraform \
     packer \
     unzip \
+    pass \
   && rm -rf /var/cache/apt/archives/*deb
 
 USER devops:devops
@@ -263,6 +264,8 @@ RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     VERSION=2.34.0 && \
     wget -c "https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_${OS}_${ARCH}.tar.gz" -O - | tar -xzv -C ~/.local/bin && \
     chmod u+x ~/.local/bin/saml2aws
+
+ENV SAML2AWS_KEYRING_BACKEND pass
 
 # Kubetail
 RUN git clone https://github.com/johanhaleby/kubetail.git ${HOME}/.oh-my-zsh/custom/plugins/kubetail

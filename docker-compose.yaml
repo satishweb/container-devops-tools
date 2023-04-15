@@ -3,19 +3,26 @@ version: '3.8'
 services:
   devops-tools:
     container_name: devops-tools
-    image: satishweb/devops-tools:v1.27.0
+    image: satishweb/devops-tools
+    # export FIXUID=$(id -u)
+    # export FIXGID=$(id -g)
     user: ${FIXUID:-1000}:${FIXGID:-1000}
     command: sleep infinity
     restart: unless-stopped
     tty: true
-    ports:
-      - "18000-19000:18000-19000"
+    working_dir: ${HOME}
+    environment:
+      - HOME
+      # - DEBUG=1
+    # ports:
+    #   - "18000-19000:18000-19000"
     volumes:
-      - ${HOME}/.kube:/home/devops/.kube
-      - ${HOME}/.saml2aws:/home/devops/.saml2aws
-      - ${HOME}/.aws:/home/devops/.aws
-      - ${HOME}/.gitconfig:/home/devops/.gitconfig
-      - ${HOME}/.ssh:/home/devops/.ssh
-      - ${HOME}/.gnupg:/home/devops/.gnupg
-      - ${HOME}/.doker:/home/devops/.docker
+      - ${HOME}/.kube:${HOME}/.kube
+      - ${HOME}/.saml2aws:${HOME}/.saml2aws
+      - ${HOME}/.aws:${HOME}/.aws
+      - ${HOME}/.gitconfig:${HOME}/.gitconfig
+      - ${HOME}/.ssh:${HOME}/.ssh
+      - ${HOME}/.docker:${HOME}/.docker
+      - ${HOME}/Documents:${HOME}/Documents
+      # - ./entrypoint.sh:/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
