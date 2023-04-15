@@ -92,7 +92,6 @@ RUN apt-get update \
     docker-ce-cli \
     docker-compose-plugin \
     docker-buildx-plugin \
-    docker-scan-plugin \
     terraform \
     packer \
     unzip \
