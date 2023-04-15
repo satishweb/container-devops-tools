@@ -59,7 +59,7 @@ fi
 gpg --list-secret-keys >/dev/null 2>&1
 
 # Initialize pass manager with default gpg id
-if [ ! -f /Users/satish/.password-store/.gpg-id ]; then
+if [ ! -f ${HOME}/.password-store/.gpg-id ]; then
     pass init $(gpg --list-keys devops|awk 'NR==2{print $1;exit}')
 fi
 
