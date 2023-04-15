@@ -308,6 +308,9 @@ RUN cd $(mktemp -d) && \
     sudo install -c -m 0755 skaffold /usr/local/bin && \
     rm -f skaffold
 
+# Pre-commit
+RUN pip3 install pre-commit
+
 # Kubetail
 RUN git clone https://github.com/johanhaleby/kubetail.git ${HOME}/.oh-my-zsh/custom/plugins/kubetail
 
