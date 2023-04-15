@@ -61,7 +61,7 @@ RUN USER=devops && \
     GROUP=devops && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -SsL https://github.com/boxboat/fixuid/releases/download/v${FIXUID_VERSION}/fixuid-${FIXUID_VERSION}-${OS}-${ARCH}.tar.gz | tar -C /usr/local/bin -xzf - && \
+    curl -sSfL https://github.com/boxboat/fixuid/releases/download/v${FIXUID_VERSION}/fixuid-${FIXUID_VERSION}-${OS}-${ARCH}.tar.gz | tar -C /usr/local/bin -xzf - && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
     mkdir -p /etc/fixuid && \
@@ -72,7 +72,7 @@ RUN chmod u+x /entrypoint.sh
 
 #### Install devops tools
 # Install docker cli
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+RUN curl -sSfL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
       $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -119,7 +119,7 @@ ARG KUBECTL_VERSION 1.27.0
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" && \
+    curl -sSfLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" && \
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
@@ -127,7 +127,7 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${OS}_${ARCH}.tar.gz" | tar xz -C . && \
+    curl -sSfL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${OS}_${ARCH}.tar.gz" | tar xz -C . && \
     sudo install -o root -g root -m 0755 eksctl /usr/local/bin/eksctl && \
     rm eksctl
 
@@ -135,7 +135,7 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.18.0/kind-${OS}-${ARCH} && \
+    curl -sSfL -o ./kind https://kind.sigs.k8s.io/dl/v0.18.0/kind-${OS}-${ARCH} && \
     sudo install -o root -g root -m 0755 kind /usr/local/bin/kind && \
     rm kind
 
@@ -143,14 +143,14 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -Lo ./terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.2/terragrunt_${OS}_${ARCH} && \
+    curl -sSfL -o ./terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.2/terragrunt_${OS}_${ARCH} && \
     sudo install -o root -g root -m 0755 terragrunt /usr/local/bin/terragrunt && \
     rm terragrunt
 
 # Install terrascan
 RUN cd "$(mktemp -d)" && \
     ARCH="$(uname -m | sed -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_${ARCH}.tar.gz")" > terrascan.tar.gz && \
+    curl -sSfL "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_${ARCH}.tar.gz")" > terrascan.tar.gz && \
     tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && \
     sudo install -o root -g root -m 0755 terrascan /usr/local/bin/terrascan && \
     rm terrascan
@@ -254,7 +254,7 @@ RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | b
 RUN cd $(mktemp -d) && \ 
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-${OS}-${ARCH} && \
+    curl -sSfL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-${OS}-${ARCH} && \
     sudo install -m 555 argocd /usr/local/bin/argocd && \
     rm argocd
 
