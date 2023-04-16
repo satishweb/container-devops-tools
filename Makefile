@@ -44,6 +44,7 @@ test:
 	docker build --build-arg KUBECTL_VERSION=${KUBECTL_VERSION} -t ${IMAGE}:${KUBECTL_VERSION} .
 
 launch:
+	[[ ! -f docker-compose.yaml ]] && cp docker-compose-template.yaml docker-compose.yaml
 	FIXUID=$$(id -u) FIXGID=$$(id -g) docker-compose up -d
 
 start:

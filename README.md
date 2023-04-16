@@ -20,7 +20,7 @@
 - `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 
 ## How to run the DevOps Tools container:
-- `cp docker-compose-template.yaml docker-compose.yaml` OR `make launch`
+- `cp docker-compose-template.yaml docker-compose.yaml; docker-compose up -d` OR `make launch`
 - `docker exec -it devops-tools zsh` OR `make enter`
 
 ## Troubleshooting
