@@ -17,11 +17,11 @@
 ### Setup: Linux
 - Install Docker cli + Containerd
 - Install docker-compose
-- `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
+- For buildx: `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 
 ## How to run the DevOps Tools container:
-- `cp docker-compose-template.yaml docker-compose.yaml; docker-compose up -d` OR `make launch`
-- `docker exec -it devops-tools zsh` OR `make enter`
+- `make launch`
+- `make enter`
 
 ## Troubleshooting
 Error: `saml2aws complains about .saml2aws being a directory`
