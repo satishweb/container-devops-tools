@@ -2,11 +2,16 @@
 
 ## Setup
 
-### Setup: Mac
+### Setup: Mac M1/x86
 - `brew install colima`
-- `colima start --arch x86_64 --layer=true --cpu 8 --memory 16 --disk 150`
+- `colima start --cpu 8 --memory 16 --disk 150`
 - `sudo rm /var/run/docker.sock`
 - `sudo ln -s ${HOME}/.colima/default/docker.sock /var/run/docker.sock`
+
+### Setup: Mac M1 (buildx)
+- `brew install colima`
+- `colima start --arch x86_64 --layer=true --cpu 8 --memory 16 --disk 150 -p buildx`
+- `docker context use colima-buildx`
 - `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 
 ### Setup: Linux
@@ -15,9 +20,8 @@
 - `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 
 ## How to run the DevOps Tools container:
-- `cp docker-compose-template.yaml docker-compose.yaml`
-- `FIXUID=$(id -u) FIXGID=$(id -g) docker compose up -d`
-- `docker exec -it devops-tools zsh`
+- `cp docker-compose-template.yaml docker-compose.yaml` OR `make launch`
+- `docker exec -it devops-tools zsh` OR `make enter`
 
 ## Troubleshooting
 Error: `saml2aws complains about .saml2aws being a directory`

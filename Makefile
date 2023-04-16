@@ -42,3 +42,18 @@ build:
 
 test:
 	docker build --build-arg KUBECTL_VERSION=${KUBECTL_VERSION} -t ${IMAGE}:${KUBECTL_VERSION} .
+
+launch:
+	FIXUID=$$(id -u) FIXGID=$$(id -g) docker-compose up -d
+
+start:
+	docker-compose start
+
+pause:
+	docker-compose pause
+
+remove:
+	docker-compose down
+
+enter:
+	docker exec -it devops-tools zsh
