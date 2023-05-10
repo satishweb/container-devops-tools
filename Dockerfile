@@ -95,6 +95,7 @@ RUN apt-get update \
     packer \
     unzip \
     pass \
+    groff \
   && rm -rf /var/cache/apt/archives/*deb
 
 USER devops:devops
