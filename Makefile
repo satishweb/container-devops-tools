@@ -40,7 +40,9 @@ build-all:
 	echo "Number of versions to build: $$version_count"; \
 	echo "Versions to build:"; \
 	echo "$$versions"| sed 's/^/  - /'; \
-	echo "$$versions" | xargs -I {} -P $$(nproc) make build KUBECTL_VERSION={}
+	first_version=$$(echo "$$versions" | head -n 1); \
+	make build KUBECTL_VERSION=$$first_version LATEST=yes PUSH=yes; \
+	echo "$$versions" | tail -n +2 | xargs -I {} -P $$(nproc) make build KUBECTL_VERSION={} PUSH=yes
 
 .PHONY: kubectl-version
 kubectl-version:
@@ -64,7 +66,7 @@ build:
 	  --work-dir "${WORKDIR}" \
 	  --git-tag "${KUBECTL_VERSION}" \
 	  --extra-args "--build-arg KUBECTL_VERSION=${KUBECTL_VERSION}" \
-	${EXTRA_BUILD_PARAMS}
+	  ${EXTRA_BUILD_PARAMS}
 
 .PHONY: test
 test:
