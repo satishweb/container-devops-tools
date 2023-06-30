@@ -121,7 +121,7 @@ __validations() {
 }
 
 __checkSource() {
-  echo hi
+  echo ""
   # # Lets do git pull if push is enabled
   # if [[ "$imgPush" == "yes" ]]; then
   #   # git checkout main >/dev/null 2>&1

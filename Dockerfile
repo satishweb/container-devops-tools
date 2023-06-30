@@ -143,7 +143,7 @@ RUN cd "$(mktemp -d)" && \
 # Install k9s
 RUN cd "$(mktemp -d)" && \
     OS="$(uname)" && \
-    ARCH="$(uname -m | sed -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
     curl -sSfL https://github.com/derailed/k9s/releases/latest/download/k9s_${OS}_${ARCH}.tar.gz | tar xz -C . && \
     sudo install -o root -g root -m 0755 k9s /usr/local/bin/k9s && \
     rm k9s && \
