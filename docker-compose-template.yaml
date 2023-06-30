@@ -3,7 +3,7 @@ version: '3.8'
 services:
   devops-tools:
     container_name: devops-tools
-    image: satishweb/devops-tools:v1.27.1
+    image: satishweb/devops-tools
     # export FIXUID=$(id -u)
     # export FIXGID=$(id -g)
     user: ${FIXUID:-1000}:${FIXGID:-1000}
