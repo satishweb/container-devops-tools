@@ -1,0 +1,428 @@
+#!/bin/bash
+##########################
+#
+# Common Functions
+#
+##########################
+# Description: Validates if AWS CLI is installed and jq is available in the system's PATH.
+# Returns:
+#   0: If the validation was successful.
+#   1: If AWS CLI is not installed or jq is not available.
+_validate_aws_cli() {
+  # Check if AWS CLI is installed
+  if ! command -v aws &> /dev/null; then
+    echo "Error: AWS CLI is not installed or not in the system's PATH."
+    return 1
+  fi
+
+  # Check AWS CLI version
+  local aws_version
+  aws_version=$(aws --version 2>&1 | awk '{print $1}')
+  if [[ "$aws_version" != "aws-cli/2"* ]]; then
+    echo "AWS CLI version 2.x is required. Please upgrade your AWS CLI."
+    return 1
+  fi
+
+  # Check if jq is installed
+  if ! command -v jq &> /dev/null; then
+    echo "Error: jq is not installed or not in the system's PATH. Please install jq (https://stedolan.github.io/jq/) to use this function."
+    return 1
+  fi
+
+  return 0
+}
+
+# Description: Prompts the user for confirmation before proceeding with an action.
+# Parameters:
+#   $1: Message - The confirmation message to display to the user.
+# Returns:
+#   0: If the user confirms.
+#   1: If the user cancels.
+_confirm_action() {
+  local message="$1"
+
+  echo -n "$message (y/n): "
+  read -r confirm
+  if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+##########################
+#
+# AWS CLI Functions
+#
+##########################
+
+# Description: Deletes AWS IAM policies matching the specified filter, including their non-default versions.
+# Parameters:
+#   $1: Filter - The policy name filter to match policies for deletion.
+# Returns:
+#   0: If the operation was successful or no policies matched the filter.
+#   1: If an error occurred during the execution.
+aws-iam-delete-policies() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of policies matching the filter
+  local policies
+  policies=$(aws iam list-policies --query "Policies[?contains(PolicyName, \`$filter\`)].{PolicyName:PolicyName, PolicyArn:Arn}" --output json)
+
+  # Check if any policies match the filter
+  local policy_count
+  policy_count=$(echo "$policies" | jq length)
+  if [ "$policy_count" -eq 0 ]; then
+    echo "No IAM policies found matching the filter '$filter'. No policies will be deleted."
+    return 0
+  fi
+
+  # Display the list of policies to the user
+  echo "The following IAM policies will be deleted:"
+  echo "-------------------------------------------"
+  echo "$policies" | jq -r '.[] | "- Name: \(.PolicyName)\n  ARN: \(.PolicyArn)\n"'
+  echo "-------------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all IAM policies matching the filter '$filter', including the default policy versions. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete non-default policy versions and policies
+  echo "Deleting IAM policies..."
+
+  echo "$policies" | jq -r '.[].PolicyArn' | while read -r policy; do
+    aws iam list-policy-versions --policy-arn "$policy" --query "Versions[?IsDefaultVersion!=\`true\`].VersionId" --output text | while read -r version; do
+      aws iam delete-policy-version --policy-arn "$policy" --version-id "$version"
+    done
+    echo -n " - $policy ... "
+    aws iam delete-policy --policy-arn "$policy" && echo -e "[ \e[32mDONE\e[0m ]" || echo -e "[ \e[31mFAILED\e[0m ]"
+  done
+}
+
+# Description: Deletes AWS IAM roles matching the specified filter.
+# Parameters:
+#   $1: Filter - The role name filter to match roles for deletion.
+# Returns:
+#   0: If the operation was successful or no roles matched the filter.
+#   1: If an error occurred during the execution.
+aws-iam-delete-roles() {
+  local filter="$1"
+
+  # Check if the filter argument is provided
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of roles matching the filter
+  local roles
+  roles=$(aws iam list-roles --query "Roles[?contains(RoleName, \`$filter\`)].{RoleName:RoleName, RoleArn:Arn}" --output json)
+
+  # Check if any roles match the filter
+  local role_count
+  role_count=$(echo "$roles" | jq length)
+  if [ "$role_count" -eq 0 ]; then
+    echo "No IAM roles found matching the filter '$filter'. No roles will be deleted."
+    return 0
+  fi
+
+  # Display the list of roles to the user
+  echo "The following IAM roles will be deleted:"
+  echo "---------------------------------------"
+  echo "$roles" | jq -r '.[] | "- Name: \(.RoleName)\n  ARN: \(.RoleArn)\n"'
+  echo "---------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all IAM roles matching the filter '$filter'. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete the roles
+  echo "Deleting IAM roles..."
+
+  echo "$roles" | jq -r '.[].RoleName' | while read -r role; do
+    echo -n " - $role ... "
+    aws iam delete-role --role-name "$role" && echo -e "[ \e[32mDONE\e[0m ]" || echo -e "[ \e[31mFAILED\e[0m ]"
+  done
+}
+
+# Description: Deletes AWS IAM users matching the specified filter.
+# Parameters:
+#   $1: Filter - The user name filter to match users for deletion.
+# Returns:
+#   0: If the operation was successful or no users matched the filter.
+#   1: If an error occurred during the execution.
+aws-iam-delete-users() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of users matching the filter
+  local users
+  users=$(aws iam list-users --query "Users[?contains(UserName, \`$filter\`)].{UserName:UserName, UserArn:Arn}" --output json)
+
+  # Check if any users match the filter
+  local user_count
+  user_count=$(echo "$users" | jq length)
+  if [ "$user_count" -eq 0 ]; then
+    echo "No IAM users found matching the filter '$filter'. No users will be deleted."
+    return 0
+  fi
+
+  # Display the list of users to the user
+  echo "The following IAM users will be deleted:"
+  echo "---------------------------------------"
+  echo "$users" | jq -r '.[] | "- Name: \(.UserName)\n  ARN: \(.UserArn)\n"'
+  echo "---------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all IAM users matching the filter '$filter'. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete the users
+  echo "Deleting IAM users..."
+
+  echo "$users" | jq -r '.[].UserName' | while read -r user; do
+    aws iam delete-user --user-name "$user"
+  done
+
+  echo "IAM users deleted successfully."
+}
+
+# Description: Deletes AWS IAM user groups matching the specified filter.
+# Parameters:
+#   $1: Filter - The group name filter to match user groups for deletion.
+# Returns:
+#   0: If the operation was successful or no user groups matched the filter.
+#   1: If an error occurred during the execution.
+aws-iam-delete-user-groups() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of user groups matching the filter
+  local groups
+  groups=$(aws iam list-groups --query "Groups[?contains(GroupName, \`$filter\`)].{GroupName:GroupName, GroupArn:Arn}" --output json)
+
+  # Check if any user groups match the filter
+  local group_count
+  group_count=$(echo "$groups" | jq length)
+  if [ "$group_count" -eq 0 ]; then
+    echo "No IAM user groups found matching the filter '$filter'. No user groups will be deleted."
+    return 0
+  fi
+
+  # Display the list of user groups to the user
+  echo "The following IAM user groups will be deleted:"
+  echo "----------------------------------------------"
+  echo "$groups" | jq -r '.[] | "- Name: \(.GroupName)\n  ARN: \(.GroupArn)\n"'
+  echo "----------------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all IAM user groups matching the filter '$filter'. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete the user groups
+  echo "Deleting IAM user groups..."
+
+  echo "$groups" | jq -r '.[].GroupName' | while read -r group; do
+    aws iam delete-group --group-name "$group"
+  done
+
+  echo "IAM user groups deleted successfully."
+}
+
+# Description: Deletes AWS EBS volumes that are not attached to any instances.
+# Parameters:
+#   $1: Filter - The volume name filter to match volumes for deletion (optional).
+# Returns:
+#   0: If the operation was successful or no volumes matched the filter.
+#   1: If an error occurred during the execution.
+aws-ec2-delete-ebs-volumes-detached() {
+  local filter="$1"
+  local confirmation_mode=""
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of detached volumes matching the filter
+  local volumes
+  if [ -n "$filter" ]; then
+    volumes=$(aws ec2 describe-volumes --filters "Name=status,Values=available,Name=tag:Name,Values=$filter" --query "Volumes[].{VolumeId:VolumeId, Name:Tags[?Key=='Name'].Value | [0], Size:Size}" --output json)
+  else
+    volumes=$(aws ec2 describe-volumes --filters "Name=status,Values=available" --query "Volumes[].{VolumeId:VolumeId, Name:Tags[?Key=='Name'].Value | [0], Size:Size}" --output json)
+  fi
+
+  # Check if any volumes match the filter
+  local volume_count
+  volume_count=$(echo "$volumes" | jq length)
+  if [ "$volume_count" -eq 0 ]; then
+    echo "No detached EBS volumes found matching the filter. No volumes will be deleted."
+    return 0
+  fi
+
+  # Display the list of volumes to the user
+  echo "The following detached EBS volumes will be deleted:"
+  echo "-----------------------------------------------"
+  echo "$volumes" | jq -r '.[] | "- Volume ID: \(.VolumeId)\n  Name: \(.Name)\n  Size: \(.Size) GiB\n"'
+  echo "-----------------------------------------------"
+
+  # Ask for confirmation mode
+  echo "Do you want to delete all matched volumes without separate confirmation for each? (y/n)"
+  read -r confirmation
+  if [[ "$confirmation" =~ ^[Yy]$ ]]; then
+    confirmation_mode="all"
+  fi
+
+  # Confirm with the user before proceeding
+  if [ "$confirmation_mode" != "all" ]; then
+    echo "Please confirm deletion for each volume:"
+    echo
+
+    echo "$volumes" | jq -r '.[].VolumeId' | while read -r volume_id; do
+      echo "Volume ID: $volume_id"
+      _confirm_action "Confirm deletion for this volume? (y/n)" || continue
+
+      echo "Deleting volume $volume_id..."
+      aws ec2 delete-volume --volume-id "$volume_id"
+      echo "Volume $volume_id deleted."
+      echo
+    done
+
+    return 0
+  fi
+
+  # Delete the volumes
+  echo "Deleting detached EBS volumes..."
+
+  echo "$volumes" | jq -r '.[].VolumeId' | while read -r volume_id; do
+    echo "Deleting volume $volume_id..."
+    aws ec2 delete-volume --volume-id "$volume_id"
+    echo "Volume $volume_id deleted."
+    echo
+  done
+
+  echo "Detached EBS volumes deleted successfully."
+}
+
+# Description: Deletes AWS EC2 instances matching the specified filter.
+# Parameters:
+#   $1: Filter - The instance name filter to match instances for deletion.
+# Returns:
+#   0: If the operation was successful or no instances matched the filter.
+#   1: If an error occurred during the execution.
+aws-ec2-delete-instances() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of instances matching the filter
+  local instances
+  instances=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=*${filter}*" --query "Reservations[].Instances[]" --output json)
+
+  # Check if any instances match the filter
+  local instance_count
+  instance_count=$(echo "$instances" | jq length)
+  if [ "$instance_count" -eq 0 ]; then
+    echo "No EC2 instances found matching the filter '${filter}'. No instances will be deleted."
+    return 0
+  fi
+
+  # Display the list of instances to the user
+  echo "The following EC2 instances will be deleted:"
+  echo "-----------------------------------------"
+  echo "$instances" | jq -r '.[] | "- Instance ID: \(.InstanceId)\n  Instance Name: \(.Tags[] | select(.Key == "Name").Value)\n  Termination Protection: \(.InstanceLifecycle | if . == "spot" then "N/A" else (.TerminationProtection | if . == "true" then "\e[33m[ PROTECTED ]\e[0m" else "Disabled" end) end)\n"'
+  echo "-----------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all EC2 instances matching the filter '${filter}'. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete the instances
+  echo "Deleting EC2 instances..."
+
+  echo "$instances" | jq -r '.[].InstanceId' | while read -r instance_id; do
+    termination_protection=$(aws ec2 describe-instance-attribute --instance-id "$instance_id" --attribute terminationProtection --query 'TerminationProtection.Value' --output text)
+    if [ "$termination_protection" == "true" ]; then
+      echo -e " - $instance_id ... [\e[33m PROTECTED \e[0m]"
+    else
+      echo -n " - $instance_id ... "
+      aws ec2 terminate-instances --instance-ids "$instance_id" && echo -e "[ \e[32mDONE\e[0m ]" || echo -e "[ \e[31mFAILED\e[0m ]"
+    fi
+  done
+
+  echo "EC2 instances deleted successfully."
+}
+
+# Description: Lists AWS EC2 instances matching the specified filter.
+# Parameters:
+#   $1: Filter - The instance name filter to match instances.
+# Returns:
+#   0: If the operation was successful or no instances matched the filter.
+#   1: If an error occurred during the execution.
+aws-ec2-list-instances() {
+  local filter="$1"
+
+  # Validate AWS CLI and jq availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of EC2 instances matching the filter
+  local instances
+  if [ -z "$filter" ]; then
+    instances=$(aws ec2 describe-instances --query "Reservations[].Instances[]" --output json)
+  else
+    instances=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=$filter" --query "Reservations[].Instances[]" --output json)
+  fi
+
+  # Check if any instances match the filter
+  local instance_count
+  instance_count=$(echo "$instances" | jq length)
+  if [ "$instance_count" -eq 0 ]; then
+    echo "No EC2 instances found matching the filter '$filter'."
+    return 0
+  fi
+
+  # Display the list of instances
+  echo "The following EC2 instances match the filter '$filter':"
+  echo "-------------------------------------------------"
+  echo "$instances" | jq -r '.[] | "- Instance ID: \(.InstanceId)\n  Instance Name: \(.Tags[] | select(.Key=="Name") | .Value)\n  Instance Type: \(.InstanceType)\n  State: \(.State.Name)\n"'
+  echo "-------------------------------------------------"
+}

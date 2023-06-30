@@ -135,6 +135,7 @@ k() { kubectl $@ }
 decode() { echo -n "$1" |base64 -d}
 
 [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
+[ -f ~/.aws_cli_functions ] && source ~/.aws_cli_functions
 export PATH="${HOME}/.krew/bin:${HOME}/bin:${HOME}/.local/bin:${PATH}"
 [[ $(which kubectl) ]] && source <(kubectl completion zsh)
 export KUBE_PS1_SYMBOL_ENABLE="false"

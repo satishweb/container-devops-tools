@@ -11,6 +11,7 @@ services:
     restart: unless-stopped
     tty: true
     working_dir: ${HOME}
+    network_mode: "host"
     environment:
       - HOME
       # - DEBUG=1
@@ -20,9 +21,14 @@ services:
       - ${HOME}/.kube:${HOME}/.kube
       - ${HOME}/.saml2aws:${HOME}/.saml2aws
       - ${HOME}/.aws:${HOME}/.aws
+      - ${HOME}/.gnupg:${HOME}/.gnupg
       - ${HOME}/.gitconfig:${HOME}/.gitconfig
       - ${HOME}/.ssh:${HOME}/.ssh
+      - ${HOME}/.vim:${HOME}/.vim
+      # - ${HOME}/.tmux.conf:${HOME}/.tmux.conf
+      - ${HOME}/.devops-tools-home/.zsh_history:${HOME}/.zsh_history
+      - ${HOME}/.zsh_history:${HOME}/.zsh_history
       - ${HOME}/.docker:${HOME}/.docker
-      # - ${HOME}/Documents:${HOME}/Documents
+      - ${HOME}/Documents:${HOME}/Documents
       # - ./entrypoint.sh:/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
