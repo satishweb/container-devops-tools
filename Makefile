@@ -36,13 +36,14 @@ default:
 build-all:
 	@echo "Building all versions..."
 	@versions=$$(make -s kubectl-versions); \
-	version_count=$$(echo "$$versions" | wc -l); \
-	echo "Number of versions to build: $$version_count"; \
 	echo "Versions to build:"; \
 	echo "$$versions"| sed 's/^/  - /'; \
 	first_version=$$(echo "$$versions" | head -n 1); \
 	make build KUBECTL_VERSION=$$first_version LATEST=yes PUSH=yes; \
 	echo "$$versions" | tail -n +2 | xargs -I {} -P $$(nproc) make build KUBECTL_VERSION={} PUSH=yes
+	for version in $$(echo $$versions|echo "$$versions" | tail -n +2); do \
+		make build KUBECTL_VERSION=$$version PUSH=yes; \
+	done
 
 .PHONY: kubectl-version
 kubectl-version:
