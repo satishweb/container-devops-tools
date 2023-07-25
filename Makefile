@@ -4,6 +4,9 @@ PLATFORMS=linux/amd64,linux/arm64
 WORKDIR=$(shell pwd)
 REPO_ROOT?=$(shell git rev-parse --show-toplevel)
 
+DOCKER_COMPOSE_COMMAND := $(shell command -v docker-compose 2> /dev/null || echo docker compose)
+DOCKER_COMPOSE_TEMP_FILE = .docker-compose.yaml
+
 ifdef PUSH
 	EXTRA_BUILD_PARAMS += --push-images --push-git-tags
 endif
@@ -76,7 +79,8 @@ test:
 
 .PHONY: launch
 launch:
-	[[ ! -f docker-compose.yaml ]] && cp docker-compose-template.yaml docker-compose.yaml
+	@[ -f ${DOCKER_COMPOSE_TEMP_FILE} ] && rm -f ${DOCKER_COMPOSE_TEMP_FILE} || true
+	@cp docker-compose-template.yaml ${DOCKER_COMPOSE_TEMP_FILE}
 	@mkdir -p \
 		${HOME}/.devops-tools-home \
 		${HOME}/.kube \
@@ -90,19 +94,19 @@ launch:
 		${HOME}/.saml2aws \
 		${HOME}/.gitconfig \
 		${HOME}/.zsh_history
-	FIXUID=$$(id -u) FIXGID=$$(id -g) docker-compose up -d
+	FIXUID=$$(id -u) FIXGID=$$(id -g) ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_TEMP_FILE} up -d
 
 .PHONY: start
 start:
-	docker-compose start
+	${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_TEMP_FILE} start
 
 .PHONY: pause
 pause:
-	docker-compose pause
+	${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_TEMP_FILE} pause
 
 .PHONY: remove
 remove:
-	docker-compose down
+	${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_TEMP_FILE} down
 
 .PHONY: enter
 enter:

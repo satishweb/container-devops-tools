@@ -12,8 +12,12 @@ services:
     tty: true
     working_dir: ${HOME}
     network_mode: "host"
+    dns:
+      - 208.67.222.222
+      - 208.67.220.220
     environment:
       - HOME
+      - HISTFILE=${HOME}/.devops-tools-home/.zsh_history
       # - DEBUG=1
     # ports:
     #   - "18000-19000:18000-19000"
@@ -21,14 +25,15 @@ services:
       - ${HOME}/.kube:${HOME}/.kube
       - ${HOME}/.saml2aws:${HOME}/.saml2aws
       - ${HOME}/.aws:${HOME}/.aws
-      - ${HOME}/.gnupg:${HOME}/.gnupg
+      # - ${HOME}/.gnupg:${HOME}/.gnupg
       - ${HOME}/.gitconfig:${HOME}/.gitconfig
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.vim:${HOME}/.vim
       # - ${HOME}/.tmux.conf:${HOME}/.tmux.conf
-      - ${HOME}/.devops-tools-home/.zsh_history:${HOME}/.zsh_history
-      - ${HOME}/.zsh_history:${HOME}/.zsh_history
+      - ${HOME}/.devops-tools-home:${HOME}/.devops-tools-home
       - ${HOME}/.docker:${HOME}/.docker
+      - ${HOME}/.colima:${HOME}/.colima
       - ${HOME}/Documents:${HOME}/Documents
       # - ./entrypoint.sh:/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
+      # - ${HOME}/sources:${HOME}/sources

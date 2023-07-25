@@ -290,7 +290,7 @@ RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     VERSION=2.34.0 && \
     wget -c "https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_${OS}_${ARCH}.tar.gz" -O - | tar -xzv -C ~/.local/bin && \
     chmod u+x ~/.local/bin/saml2aws && \
-    echo "ARGOCD: $(~/.local/bin/saml2aws --version)" | sudo tee -a /versions
+    echo "SAML2AWS: $(~/.local/bin/saml2aws --version)" | sudo tee -a /versions
 
 ENV SAML2AWS_KEYRING_BACKEND pass
 

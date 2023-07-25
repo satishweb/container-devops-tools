@@ -3,4 +3,5 @@ templated-output*.yaml
 tmp
 .idea
 *.iml
-docker-compose.yaml
+# Temporary docker compose file generated from docker-compose template
+.docker-compose.yaml
