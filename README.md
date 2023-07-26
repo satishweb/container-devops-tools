@@ -20,6 +20,8 @@
 - For buildx: `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 
 ## How to run the DevOps Tools container:
+- Edit docker-compose-template.yaml and update volume paths as required
+- Fix OMZ slowness issue caused by large git repositories `git config --global oh-my-zsh.hide-dirty 1`
 - `make launch`
 - `make enter`
 
