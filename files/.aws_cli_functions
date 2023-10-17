@@ -426,3 +426,70 @@ aws-ec2-list-instances() {
   echo "$instances" | jq -r '.[] | "- Instance ID: \(.InstanceId)\n  Instance Name: \(.Tags[] | select(.Key=="Name") | .Value)\n  Instance Type: \(.InstanceType)\n  State: \(.State.Name)\n"'
   echo "-------------------------------------------------"
 }
+
+# Description: Deletes AWS Route53 zones matching the specified filter,
+# along with any records within those zones.
+# Parameters:
+#   $1: Filter - The name filter to match zones for deletion.
+# Returns:
+#   0: If the operation was successful or no zones matched the filter.
+#   1: If an error occurred during the execution.
+aws-route53-delete-zones() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of zones matching the filter
+  local zones
+  zones=$(aws route53 list-hosted-zones --query "HostedZones[?contains(Name, \`$filter\`)].{Id:Id, Name:Name}" --output json)
+
+  # Check if any zones match the filter
+  local zone_count
+  zone_count=$(echo "$zones" | jq length)
+  if [ "$zone_count" -eq 0 ]; then
+    echo "No Route53 zones found matching the filter '$filter'. No zones will be deleted."
+    return 0
+  fi
+
+  # Display the list of zones to the user
+  echo "The following Route53 zones will be deleted:"
+  echo "----------------------------------------"
+  echo "$zones" | jq -r '.[] | "- ID: \(.Id)\n  Name: \(.Name)\n"'
+  echo "----------------------------------------"
+
+  # Confirm with the user before proceeding
+  if ! _confirm_action "This action will delete all Route53 zones matching the filter '$filter', including all records within them. This cannot be undone."; then
+    echo "Operation aborted."
+    return 0
+  fi
+
+  # Delete the zones
+  echo "Deleting Route53 zones..."
+
+  echo "$zones" | jq -r '.[].Id' | while read -r zone_id; do
+    # Strip off the "/hostedzone/" prefix from the zone ID
+    local processed_zone_id="${zone_id#/hostedzone/}"
+
+    # Delete all records in the zone first
+    aws route53 list-resource-record-sets --hosted-zone-id "$processed_zone_id" | jq -c '.ResourceRecordSets[]' | while read -r resourcerecordset; do
+      local record_name=$(echo "$resourcerecordset" | jq -r '.Name')
+      local record_type=$(echo "$resourcerecordset" | jq -r '.Type')
+      if [ "$record_type" != "NS" ] && [ "$record_type" != "SOA" ]; then
+        local recordset_change_batch="{ \"Changes\": [ { \"Action\": \"DELETE\", \"ResourceRecordSet\": $resourcerecordset } ] }"
+        aws route53 change-resource-record-sets --hosted-zone-id "$processed_zone_id" --change-batch "$recordset_change_batch"
+      fi
+    done
+
+    # Delete the zone
+    echo -n " - $zone_id ... "
+    aws route53 delete-hosted-zone --id "$processed_zone_id" >/dev/null && echo -e "[ \e[32mDONE\e[0m ]" || echo -e "[ \e[31mFAILED\e[0m ]"
+  done
+
+  echo "Route53 zones deleted successfully."
+}
