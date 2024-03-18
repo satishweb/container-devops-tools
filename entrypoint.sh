@@ -43,7 +43,7 @@ sudo chown $(id -u):$(id -g) ${HOME}
 HOME_FILES="$(ls -a /home/devops/)"
 echo "$HOME_FILES" | while IFS= read -r f
 do
-    if [ ! -e $f ]; then
+    if [ -f $f ]; then
         ln -s /home/devops/$f ./
     fi
 done

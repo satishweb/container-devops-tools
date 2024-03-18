@@ -27,9 +27,10 @@ services:
       - ${HOME}/.aws:${HOME}/.aws
       # - ${HOME}/.gnupg:${HOME}/.gnupg
       - ${HOME}/.gitconfig:${HOME}/.gitconfig
+      - ${HOME}/.git-credentials:${HOME}/.git-credentials
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.vim:${HOME}/.vim
-      # - ${HOME}/.tmux.conf:${HOME}/.tmux.conf
+      - ${HOME}/.tmux.conf:${HOME}/.tmux.conf
       - ${HOME}/.devops-tools-home:${HOME}/.devops-tools-home
       - ${HOME}/.docker:${HOME}/.docker
       - ${HOME}/.colima:${HOME}/.colima

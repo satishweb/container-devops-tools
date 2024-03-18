@@ -100,6 +100,8 @@ RUN apt-get update \
     bsdmainutils \
     groff \
     nano \
+    gh \
+    mtr \
   && rm -rf /var/cache/apt/archives/*deb
 
 USER devops:devops

@@ -93,6 +93,7 @@ launch:
 	@touch \
 		${HOME}/.saml2aws \
 		${HOME}/.gitconfig \
+		${HOME}/.git-credentials \
 		${HOME}/.zsh_history
 	FIXUID=$$(id -u) FIXGID=$$(id -g) ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_TEMP_FILE} up -d
 

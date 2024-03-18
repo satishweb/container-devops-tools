@@ -10,7 +10,7 @@
 
 ### Setup: Mac M1 (buildx)
 - `brew install colima`
-- `colima start --arch x86_64 --layer=true --cpu 8 --memory 16 --disk 150 -p buildx`
+- `colima start --arch x86_64 --cpu 8 --memory 16 --disk 150 -p buildx`
 - `docker context use colima-buildx`
 - `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`
 

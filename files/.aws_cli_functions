@@ -493,3 +493,56 @@ aws-route53-delete-zones() {
 
   echo "Route53 zones deleted successfully."
 }
+
+# Description: Detaches all attached policies from IAM roles matching the specified filter.
+# Parameters:
+#   $1: Filter - The role name filter to match roles for policy detachment.
+# Returns:
+#   0: If the operation was successful or no roles matched the filter.
+#   1: If an error occurred during the execution.
+aws-iam-detach-policies-from-role() {
+  local filter="$1"
+
+  if [ -z "$filter" ]; then
+    echo "Error: Filter argument is required."
+    return 1
+  fi
+
+  # Validate AWS CLI availability
+  _validate_aws_cli || return 1
+
+  # Retrieve the list of roles matching the filter
+  local roles
+  roles=$(aws iam list-roles --query "Roles[?contains(RoleName, \`$filter\`)].RoleName" --output json)
+
+  # Check if any roles match the filter
+  local role_count
+  role_count=$(echo "$roles" | jq length)
+  if [ "$role_count" -eq 0 ]; then
+    echo "No IAM roles found matching the filter '$filter'. No policies will be detached."
+    return 0
+  fi
+
+  # Detach policies from each role matching the filter
+  echo "$roles" | jq -r '.[]' | while read -r role_name; do
+    echo "Detaching policies from role: $role_name ..."
+
+    # Retrieve the list of attached policies
+    local policies
+    policies=$(aws iam list-attached-role-policies --role-name "$role_name" --query 'AttachedPolicies[].PolicyArn' --output json)
+
+    # Check if no policies are attached
+    if [ "$policies" == "[]" ]; then
+      echo "No policies attached to the role '$role_name'. No policies will be detached."
+      return 0
+    fi
+
+    # Detach all policies
+    echo "$policies" | jq -r '.[]' | while read -r policy_arn; do
+      echo -n " - $policy_arn ... "
+      aws iam detach-role-policy --role-name "$role_name" --policy-arn "$policy_arn" && echo -e "[ \e[32mDONE\e[0m ]" || echo -e "[ \e[31mFAILED\e[0m ]"
+    done
+
+    echo "All attached policies have been detached successfully from the role: $role_name."
+  done
+}
