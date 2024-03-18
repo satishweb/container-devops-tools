@@ -102,9 +102,6 @@ RUN USER=ubuntu && \
     printf "user: $USER\ngroup: $GROUP\npaths:\n  - /home/ubuntu\n" > /etc/fixuid/config.yml && \
     echo "FIXUID: ${FIXUID_VERSION}" | sudo tee -a /versions
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod u+x /entrypoint.sh
-
 #### Install tools
 # Install docker cli
 RUN curl -sSfL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
@@ -410,6 +407,9 @@ COPY files/yai.json ${HOME}/.config/yai.json
 
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
+
+COPY entrypoint.sh /entrypoint.sh
+RUN sudo chmod u+x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD [ "/bin/zsh" ]
