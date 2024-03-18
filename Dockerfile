@@ -320,7 +320,7 @@ RUN cd $(mktemp -d) && \
 # Install SAML2AWS
 RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    VERSION=2.34.0 && \
+    VERSION=2.36.13 && \
     wget -c "https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_${OS}_${ARCH}.tar.gz" -O - | tar -xzv -C ~/.local/bin && \
     chmod u+x ~/.local/bin/saml2aws && \
     echo "SAML2AWS: $(~/.local/bin/saml2aws --version)" | sudo tee -a /versions
