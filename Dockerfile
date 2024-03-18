@@ -3,7 +3,7 @@ FROM public.ecr.aws/ubuntu/ubuntu:22.04
 LABEL MAINTAINER "Satish Gaikwad <satish@satishweb.com>"
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV FIXUID_VERSION 0.5.1
+ENV FIXUID_VERSION 0.6.0
 
 RUN apt-get update
 
@@ -14,7 +14,7 @@ RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/ap
 RUN apt-get install -y \
     ca-certificates \
     software-properties-common \
-    && rm -rf /var/cache/apt/archives/*deb
+    && apt clean -y
 
 # Install desktop environment and other system tools
 RUN apt-get -y install \
@@ -40,38 +40,72 @@ RUN apt-get -y install \
     python3-virtualenv \
     locales \
     build-essential \
-    && rm -rf  /var/cache/apt/archives/*deb
+    apt-utils \
+    openssh-client \
+    gnupg2 \
+    iproute2 \
+    procps \
+    lsof \
+    htop \
+    net-tools \
+    psmisc \
+    rsync \
+    ca-certificates \
+    unzip \
+    zip \
+    nano \
+    vim-tiny \
+    lsb-release \
+    apt-transport-https \
+    dialog \
+    libc6 \
+    libgcc1 \
+    libkrb5-3 \
+    libgssapi-krb5-2 \
+    libstdc++6 \
+    zlib1g \
+    ncdu \
+    man-db \
+    strace \
+    manpages \
+    manpages-dev \
+    manpages-posix \
+    manpages-posix-dev \
+    zsh \
+    && apt clean -y
+
 
 RUN locale-gen en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
 ## User Config
-RUN groupadd -g 1000 devops
-RUN useradd -u 1000 -g 1000 -d /home/devops -s /bin/zsh -c "DevOps User" devops
+RUN groupadd -g 1000 ubuntu
+RUN useradd -u 1000 -g 1000 -d /home/ubuntu -s /bin/zsh -c "Linux User" ubuntu
 
 # Allow DevOps user to be sudo to install any new packages
-RUN usermod -a -G sudo devops
-RUN echo '%devops ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN mkdir -p /home/devops/.local/bin
-RUN chown -Rf devops:devops /home/devops
+RUN usermod -a -G sudo ubuntu
+RUN echo '1000 ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN echo '%ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN mkdir -p /home/ubuntu/.local/bin
+RUN chown -Rf ubuntu:ubuntu /home/ubuntu
 
 # Install fixuid to allow change of uid and gid runtime
-RUN USER=devops && \
-    GROUP=devops && \
+RUN USER=ubuntu && \
+    GROUP=ubuntu && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
     curl -sSfL https://github.com/boxboat/fixuid/releases/download/v${FIXUID_VERSION}/fixuid-${FIXUID_VERSION}-${OS}-${ARCH}.tar.gz | tar -C /usr/local/bin -xzf - && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
     mkdir -p /etc/fixuid && \
-    printf "user: $USER\ngroup: $GROUP\npaths:\n  - /home/devops\n" > /etc/fixuid/config.yml && \
+    printf "user: $USER\ngroup: $GROUP\npaths:\n  - /home/ubuntu\n" > /etc/fixuid/config.yml && \
     echo "FIXUID: ${FIXUID_VERSION}" | sudo tee -a /versions
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod u+x /entrypoint.sh
 
-#### Install devops tools
+#### Install tools
 # Install docker cli
 RUN curl -sSfL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
     echo \
@@ -102,12 +136,12 @@ RUN apt-get update \
     nano \
     gh \
     mtr \
+    ranger \
   && rm -rf /var/cache/apt/archives/*deb
 
-USER devops:devops
-ENV HOME /home/devops
-WORKDIR /home/devops
-RUN sudo chown -Rf devops:devops ${HOME}/
+USER ubuntu:ubuntu
+ENV HOME /home/ubuntu
+WORKDIR /home/ubuntu
 
 # Install Oh My ZSH
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -278,7 +312,7 @@ RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | b
     echo "HELM: $(helm version)" | sudo tee -a /versions
 
 # Install argocd
-RUN cd $(mktemp -d) && \ 
+RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
     curl -sSfL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-${OS}-${ARCH} && \
@@ -358,8 +392,11 @@ RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${HOME}/.
 # kube-ps1
 RUN git clone https://github.com/jonmosco/kube-ps1.git ${HOME}/.oh-my-zsh/custom/plugins/kube-ps1
 
+# AI YAI
+RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | sudo bash && mkdir -p ~/.config
+
 RUN sudo groupadd docker ;\
-    sudo usermod -aG docker devops
+    sudo usermod -aG docker ubuntu
 
 ENV TERM xterm-256color
 
@@ -369,6 +406,8 @@ COPY files/.kubectl_aliases ${HOME}/.kubectl_aliases
 COPY files/.aws_cli_functions ${HOME}/.aws_cli_functions
 COPY files/.zshrc ${HOME}/.zshrc
 COPY files/.tmux.conf ${HOME}/.tmux.conf
+COPY files/yai.json ${HOME}/.config/yai.json
+
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
 

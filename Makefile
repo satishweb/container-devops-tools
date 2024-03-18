@@ -82,7 +82,6 @@ launch:
 	@[ -f ${DOCKER_COMPOSE_TEMP_FILE} ] && rm -f ${DOCKER_COMPOSE_TEMP_FILE} || true
 	@cp docker-compose-template.yaml ${DOCKER_COMPOSE_TEMP_FILE}
 	@mkdir -p \
-		${HOME}/.devops-tools-home \
 		${HOME}/.kube \
 		${HOME}/.docker \
 		${HOME}/.aws \
@@ -111,4 +110,4 @@ remove:
 
 .PHONY: enter
 enter:
-	docker exec -it devops-tools zsh
+	docker exec -it devops-tools zsh || true

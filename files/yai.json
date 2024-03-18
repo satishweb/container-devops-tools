@@ -1,0 +1,10 @@
+{
+    "openai_key": "CHANGE_ME",
+    "openai_max_tokens": 1000,
+    "openai_model": "gpt-3.5-turbo",
+    "openai_proxy": "",
+    "openai_temperature": 0.2,
+    "user_default_prompt_mode": "exec",
+    "user_preferences": "Never execute any commands without my confirmation!",
+    "dummy_key": "dummy_value"
+}

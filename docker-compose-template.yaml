@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  devops-tools:
+  tools:
     container_name: devops-tools
     image: satishweb/devops-tools
     # export FIXUID=$(id -u)
@@ -16,8 +16,16 @@ services:
     #   - 208.67.222.222
     #   - 208.67.220.220
     environment:
-      - HOME
-      - HISTFILE=${HOME}/.devops-tools-home/.zsh_history
+      - HOME=${HOME}
+      - SHELL=/usr/bin/zsh
+      - USER=ubuntu
+      - OPENAI_API_KEY=SET-ME
+      - OPENAI_MAX_TOKENS=1000
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - OPENAI_PROXY=
+      - OPENAI_TEMPERATURE=0.2
+      - USER_DEFAULT_PROMPT_MODE=exec
+      - USER_PREFERENCES="Never execute any commands without my confirmation!"
       # - DEBUG=1
     # ports:
     #   - "18000-19000:18000-19000"
@@ -31,10 +39,9 @@ services:
       - ${HOME}/.ssh:${HOME}/.ssh
       - ${HOME}/.vim:${HOME}/.vim
       - ${HOME}/.tmux.conf:${HOME}/.tmux.conf
-      - ${HOME}/.devops-tools-home:${HOME}/.devops-tools-home
       - ${HOME}/.docker:${HOME}/.docker
-      - ${HOME}/.colima:${HOME}/.colima
+      # - ${HOME}/.colima:${HOME}/.colima
       - ${HOME}/Documents:${HOME}/Documents
-      # - ./entrypoint.sh:/entrypoint.sh
+      - ./entrypoint.sh:/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
-      # - ${HOME}/sources:${HOME}/sources
+      - ${HOME}/sources:${HOME}/sources

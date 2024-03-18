@@ -140,5 +140,5 @@ export PATH="${HOME}/.krew/bin:${HOME}/bin:${HOME}/.local/bin:${PATH}"
 [[ $(which kubectl) ]] && source <(kubectl completion zsh)
 export KUBE_PS1_SYMBOL_ENABLE="false"
 source "${ZSH}/custom/plugins/kube-ps1/kube-ps1.sh"
-PROMPT='[ DEVOPS ] ''$(kube_ps1)'$PROMPT
+PROMPT='[ TOOLS ] ''$(kube_ps1)'$PROMPT
 if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
