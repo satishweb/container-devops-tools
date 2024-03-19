@@ -282,9 +282,6 @@ RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bas
 
 RUN groupadd docker && usermod -aG docker ubuntu
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod u+x /entrypoint.sh
-
 ENV HOME /home/ubuntu
 
 # Copy default configs
@@ -411,6 +408,8 @@ RUN echo "set mouse-=a" >> ~/.vimrc
 
 ENV TERM xterm-256color
 ENV SAML2AWS_KEYRING_BACKEND pass
+
+COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD [ "/bin/zsh" ]
