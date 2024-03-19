@@ -31,20 +31,6 @@ print_divider() {
 print_divider
 printf "| Starting Tools Container \n"
 
-## Load env vars [ docker-compose compatibility ]
-if ! curl --output /dev/null --silent --head --fail http://kubernetes.default.svc.cluster.local; then
-    if [ -d "/run/secrets/" ]; then
-        printf "| ENTRYPOINT: \033[0;31mDeclaring and exporting container secrets in the current shell (/run/secrets/*)...\033[0m\n"
-        while IFS= read -r -d '' i; do
-            varName=$(basename "$i" | sed 's/_FILE//')
-            exportCmd="export $varName=$(< "$i")"
-            echo "${exportCmd}" >> /etc/profile
-            eval "${exportCmd}"
-            printf "| ENTRYPOINT: Exporting var: %s\n" "$varName"
-        done < <(find /run/secrets/ -type f -print0 | grep -z '.')
-    fi
-fi
-
 ## Run fixuid to update home dir contents ownership to given uid and gid
 (printf "user: %s\ngroup: %s\npaths:\n  - %s\n" "${USER}" "${USER}" "${HOME}" | sudo tee /etc/fixuid/config.yml > /dev/null) || true
 
@@ -81,6 +67,18 @@ if [[ "$HOME" != "$HOME_TEMPLATE" && $HOME ]]; then
             cp -rf "$item" "${HOME}" || true
         fi
     done
+fi
+
+## Load env vars [ docker-compose compatibility ]
+if [ -d "/run/secrets/" ]; then
+    printf "| ENTRYPOINT: \033[0;31mDeclaring and exporting container secrets in the current shell (/run/secrets/*)...\033[0m\n"
+    while IFS= read -r -d '' i; do
+        varName=$(basename "$i" | sed 's/_FILE//')
+        exportCmd="export $varName=$(< "$i")"
+        echo "${exportCmd}" >> "${HOME}/.zshrc"
+        eval "${exportCmd}"
+        printf "| ENTRYPOINT: Exporting var: %s\n" "$varName"
+    done < <(find /run/secrets/ -type f -print0 | grep -z '.')
 fi
 
 ## GPG and pass manager setup [ For CLI OIDC authenticators such as saml2aws via Okta ]
