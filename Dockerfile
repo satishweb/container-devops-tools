@@ -288,7 +288,7 @@ ENV HOME /home/ubuntu
 # Note: if you have a personalized tmux config, just mount it inside the container at runtime
 COPY files/.kubectl_aliases ${HOME}/.kubectl_aliases
 COPY files/.aws_cli_functions ${HOME}/.aws_cli_functions
-COPY files/.zshrc ${HOME}/.zshrc
+COPY files/.zshrc ${HOME}/.zshrc_original
 COPY files/.tmux.conf ${HOME}/.tmux.conf
 COPY files/yai.json ${HOME}/.config/yai.json
 
@@ -299,6 +299,9 @@ WORKDIR /home/ubuntu
 
 # Install Oh My ZSH
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Replace zshrc
+RUN cp ${HOME}/.zshrc_original ${HOME}/.zshrc
 
 ARG KUBECTL_VERSION v1.27.3
 
