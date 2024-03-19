@@ -292,6 +292,18 @@ WORKDIR /home/ubuntu
 # Install Oh My ZSH
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+ARG KUBECTL_VERSION v1.27.3
+
+# Install kubectl
+RUN cd "$(mktemp -d)" && \
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    curl -sSfLO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl && \
+    install -o ubuntu -g ubuntu -m 0755 kubectl ${HOME}/.local/bin/kubectl && \
+    rm kubectl
+
+ENV PATH ${HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+
 # Install plugins that are available only for amd64 platform
 RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
@@ -383,8 +395,6 @@ RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${HOME}/.
 # kube-ps1
 RUN git clone https://github.com/jonmosco/kube-ps1.git ${HOME}/.oh-my-zsh/custom/plugins/kube-ps1
 
-ARG KUBECTL_VERSION v1.27.3
-
 # Copy default configs
 # Note: if you have a personalized tmux config, just mount it inside the container at runtime
 COPY files/.kubectl_aliases ${HOME}/.kubectl_aliases
@@ -398,15 +408,6 @@ RUN echo "set mouse-=a" >> ~/.vimrc
 
 ENV TERM xterm-256color
 ENV SAML2AWS_KEYRING_BACKEND pass
-
-# Install kubectl
-RUN cd "$(mktemp -d)" && \
-    OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
-    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfLO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl && \
-    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
-    rm kubectl && \
-    echo "KUBECTL: ${KUBECTL_VERSION}" | sudo tee -a /versions
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD [ "/bin/zsh" ]
