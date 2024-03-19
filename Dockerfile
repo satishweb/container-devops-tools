@@ -285,8 +285,19 @@ RUN groupadd docker && usermod -aG docker ubuntu
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod u+x /entrypoint.sh
 
-USER ubuntu:ubuntu
 ENV HOME /home/ubuntu
+
+# Copy default configs
+# Note: if you have a personalized tmux config, just mount it inside the container at runtime
+COPY files/.kubectl_aliases ${HOME}/.kubectl_aliases
+COPY files/.aws_cli_functions ${HOME}/.aws_cli_functions
+COPY files/.zshrc ${HOME}/.zshrc
+COPY files/.tmux.conf ${HOME}/.tmux.conf
+COPY files/yai.json ${HOME}/.config/yai.json
+
+RUN chown -Rf ubuntu:ubuntu ${HOME}/.*
+
+USER ubuntu:ubuntu
 WORKDIR /home/ubuntu
 
 # Install Oh My ZSH
@@ -394,16 +405,6 @@ RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${HOME}/.
 
 # kube-ps1
 RUN git clone https://github.com/jonmosco/kube-ps1.git ${HOME}/.oh-my-zsh/custom/plugins/kube-ps1
-
-# Copy default configs
-# Note: if you have a personalized tmux config, just mount it inside the container at runtime
-COPY files/.kubectl_aliases ${HOME}/.kubectl_aliases
-COPY files/.aws_cli_functions ${HOME}/.aws_cli_functions
-COPY files/.zshrc ${HOME}/.zshrc
-COPY files/.tmux.conf ${HOME}/.tmux.conf
-COPY files/yai.json ${HOME}/.config/yai.json
-
-RUN sudo chown -Rf ubuntu:ubuntu ${HOME}/.*
 
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
