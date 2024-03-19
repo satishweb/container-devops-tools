@@ -69,18 +69,6 @@ if [[ "$HOME" != "$HOME_TEMPLATE" && $HOME ]]; then
     done
 fi
 
-## Load env vars [ docker-compose compatibility ]
-if [ -d "/run/secrets/" ]; then
-    printf "| ENTRYPOINT: \033[0;31mDeclaring and exporting container secrets in the current shell (/run/secrets/*)...\033[0m\n"
-    while IFS= read -r -d '' i; do
-        varName=$(basename "$i" | sed 's/_FILE//')
-        exportCmd="export $varName=$(< "$i")"
-        echo "${exportCmd}" >> "${HOME}/.zshrc"
-        eval "${exportCmd}"
-        printf "| ENTRYPOINT: Exporting var: %s\n" "$varName"
-    done < <(find /run/secrets/ -type f -print0 | grep -z '.')
-fi
-
 ## GPG and pass manager setup [ For CLI OIDC authenticators such as saml2aws via Okta ]
 
 # Generate default gpg key without the password
