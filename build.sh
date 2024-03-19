@@ -104,7 +104,7 @@ __dockerBuild(){
   tagParams=""
   for i in $2; do tagParams+=" -t $1:$i"; done
   # shellcheck disable=SC2086
-  sudo docker buildx build --platform "$3" $5 $tagParams "$4"
+  sudo docker buildx build --progress plain --platform "$3" $5 $tagParams "$4"
   __errCheck "$?" "Docker Build failed"
 }
 
