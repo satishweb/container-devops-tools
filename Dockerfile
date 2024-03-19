@@ -403,6 +403,8 @@ COPY files/.zshrc ${HOME}/.zshrc
 COPY files/.tmux.conf ${HOME}/.tmux.conf
 COPY files/yai.json ${HOME}/.config/yai.json
 
+RUN sudo chown -Rf ubuntu:ubuntu ${HOME}/.*
+
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
 
