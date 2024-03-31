@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
 
-# Disable auto installation of recommended packages, too many unwanted packages gets installed without this 
+# Disable auto installation of recommended packages, too many unwanted packages gets installed without this
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/apt/apt.conf.d/999norecommend
 
 # Install basic system packages
@@ -78,14 +78,12 @@ RUN locale-gen en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
-## User Config
+## Default User Config
 RUN groupadd -g 1000 ubuntu
 RUN useradd -u 1000 -g 1000 -d /home/ubuntu -s /bin/zsh -c "Linux User" ubuntu
 
-# Allow ubuntu user to be sudo to install any new packages
-RUN usermod -a -G sudo ubuntu
-RUN echo '1000 ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN echo '%ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+# Allow all users to use sudo. This is to allow custom UID and GIDs to gain sudo access
+RUN echo 'ALL ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 RUN mkdir -p /home/ubuntu/.local/bin
 RUN chown -Rf ubuntu:ubuntu /home/ubuntu
 
