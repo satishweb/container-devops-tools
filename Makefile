@@ -72,10 +72,10 @@ build-all:
 	echo "Versions to build:"; \
 	echo "$$versions"| sed 's/^/  - /'; \
 	first_version=$$(echo "$$versions" | head -n 1); \
-	make build KUBECTL_VERSION=$$first_version LATEST=yes PUSH=yes; \
+	make build KUBECTL_VERSION=$$first_version LATEST=yes PUSH=yes L=$(L); \
 	# echo "$$versions" | tail -n +2 | xargs -I {} -P $$(nproc) make build KUBECTL_VERSION={} PUSH=yes ;\
 	for version in $$(echo $$versions|echo "$$versions" | tail -n +2); do \
-		make build KUBECTL_VERSION=$$version PUSH=yes; \
+		make build KUBECTL_VERSION=$$version PUSH=yes L=$(L); \
 	done
 
 .PHONY: kubectl-version
