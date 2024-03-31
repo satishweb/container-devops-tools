@@ -36,7 +36,6 @@ RUN apt-get -y install \
     git \
     python3 \
     python3-pip \
-    python3-virtualenv \
     locales \
     build-essential \
     apt-utils \
@@ -390,7 +389,7 @@ RUN kubectl krew install \
       who-can
 
 # Pre-commit
-RUN pip3 install pre-commit
+RUN pip3 install pre-commit virtualenv
 
 # Kubetail
 RUN git clone https://github.com/johanhaleby/kubetail.git ${HOME}/.oh-my-zsh/custom/plugins/kubetail
