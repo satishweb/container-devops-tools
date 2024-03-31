@@ -104,7 +104,7 @@ __dockerBuild(){
   tagParams=""
   for i in $2; do tagParams+=" -t $1:$i"; done
   # shellcheck disable=SC2086
-  docker buildx build --progress plain --platform "$3" $5 $tagParams "$4"
+  docker --context builder buildx build --progress plain --platform "$3" $5 $tagParams "$4"
   __errCheck "$?" "Docker Build failed"
 }
 
@@ -139,8 +139,10 @@ __setupDocker() {
     __errCheck "$?" "Docker login failed..."
     extraDockerArgs+=" --push"
   fi
-  docker buildx create --name builder >/dev/null 2>&1
-  docker buildx use builder >/dev/null 2>&1
+  docker context create builder || true
+  docker context use builder  || true
+  docker --context builder buildx create --name builder || true
+  docker --context builder buildx use builder
   __errCheck "$?" "Could not use docker buildx default runner..."
 }
 
