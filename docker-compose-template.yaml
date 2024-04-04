@@ -26,6 +26,9 @@ services:
       - OPENAI_TEMPERATURE=0.2
       - USER_DEFAULT_PROMPT_MODE=exec
       - USER_PREFERENCES="Never execute any commands without my confirmation!"
+      - PROMPT_KUBECTL_ENABLED=1
+      - PROMPT_PREFIX="[ TOOLS ]"
+      - SSH_SERVER_ENABLED="0"
       # - DEBUG=1
     # ports:
     #   - "18000-19000:18000-19000"

@@ -57,7 +57,6 @@ if [[ "$HOME" != "$HOME_TEMPLATE" && $HOME ]]; then
         "${HOME_TEMPLATE}/.kubectl_aliases"
         "${HOME_TEMPLATE}/.tmux.conf"
         "${HOME_TEMPLATE}/.vimrc"
-        "${HOME_TEMPLATE}/.wget-hsts"
         "${HOME_TEMPLATE}/.zshrc"
     )
     for item in "${items_to_copy[@]}"; do
@@ -109,6 +108,13 @@ for env_key in "${env_keys[@]}"; do
         update_key "${env_key#*=}" "${!env_var}"
     fi
 done
+
+# Start SSH server if SSH_SERVER is enabled
+SSH_SERVER_ENABLED="${SSH_SERVER_ENABLED:-0}"
+if [ "${SSH_SERVER_ENABLED}" = "1" ]; then
+    printf "| Starting SSH server ... "
+    (sudo service ssh start >/dev/null 2>&1 && echo "[ OK ]") || echo "[ FAILED ]"
+fi
 
 printf "| Initialization complete! Container ready for use \n"
 print_divider
