@@ -279,6 +279,34 @@ RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bas
 
 RUN groupadd docker && usermod -aG docker ubuntu
 
+# install pip3 global packages
+RUN pip install \
+    argparse \
+    boto3 \
+    click \
+    colorama \
+    docutils \
+    flake8 \
+    isort \
+    jsonargparse \
+    moto \
+    nltk \
+    numpy \
+    pandas \
+    poetry \
+    poetry-core \
+    pre-commit \
+    pytest \
+    pytest-cov \
+    pytest-runner \
+    pyfakefs \
+    questionary \
+    requests \
+    scipy \
+    tabulate \
+    urllib3 \
+    virtualenv
+
 ENV HOME /home/ubuntu
 
 # Copy default configs
@@ -289,7 +317,7 @@ COPY files/.zshrc ${HOME}/.zshrc_original
 COPY files/.tmux.conf ${HOME}/.tmux.conf
 COPY files/yai.json ${HOME}/.config/yai.json
 
-RUN chown -Rf ubuntu:ubuntu ${HOME}/.*
+RUN chown -Rf ubuntu:ubuntu ${HOME}
 
 USER ubuntu:ubuntu
 WORKDIR /home/ubuntu
@@ -387,9 +415,6 @@ RUN kubectl krew install \
       view-secret \
       view-utilization \
       who-can
-
-# Pre-commit
-RUN pip3 install pre-commit virtualenv
 
 # Kubetail
 RUN git clone https://github.com/johanhaleby/kubetail.git ${HOME}/.oh-my-zsh/custom/plugins/kubetail
