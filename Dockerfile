@@ -1,8 +1,8 @@
 # Author: Satish Gaikwad <satish@satishweb.com>
-FROM public.ecr.aws/ubuntu/ubuntu:22.04
-LABEL MAINTAINER "Satish Gaikwad <satish@satishweb.com>"
+FROM ubuntu:24.04
+LABEL MAINTAINER="Satish Gaikwad <satish@satishweb.com>"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
@@ -74,19 +74,21 @@ RUN apt-get -y install \
 
 
 RUN locale-gen en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
 
 ## Default User Config
-RUN groupadd -g 1000 ubuntu
-RUN useradd -u 1000 -g 1000 -d /home/ubuntu -s /bin/zsh -c "Linux User" ubuntu
+# The user is only created when it is not there yet. The base image of
+# ubuntu 24.04 already has a user with the id 1000.
+RUN getent group ubuntu >/dev/null || groupadd -g 1000 ubuntu
+RUN getent passwd ubuntu >/dev/null || useradd -u 1000 -g 1000 -d /home/ubuntu -s /bin/zsh -c "Linux User" ubuntu
 
 # Allow all users to use sudo. This is to allow custom UID and GIDs to gain sudo access
 RUN echo 'ALL ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 RUN mkdir -p /home/ubuntu/.local/bin
 RUN chown -Rf ubuntu:ubuntu /home/ubuntu
 
-ENV FIXUID_VERSION 0.6.0
+ENV FIXUID_VERSION=0.6.0
 
 # Install fixuid to allow change of uid and gid runtime
 RUN USER=ubuntu && \
@@ -183,7 +185,7 @@ RUN cd "$(mktemp -d)" && \
 # Install terrascan
 RUN cd "$(mktemp -d)" && \
     ARCH="$(uname -m | sed -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL $(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_${ARCH}.tar.gz") > terrascan.tar.gz && \
+    curl -sSfL $(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://[^\"]*_Linux_${ARCH}\.tar\.gz" | head -1) > terrascan.tar.gz && \
     tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz && \
     install -o root -g root -m 0755 terrascan /usr/local/bin/terrascan && \
     rm terrascan && \
@@ -194,7 +196,12 @@ RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/
     echo "TFSEC: $(tfsec --version)" | tee -a /versions
 
 # Install tflint
-RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash && \
+# The install script of the project is gone, the release of the project has
+# the binary as an asset.
+RUN ARCH_TFLINT="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/amd64/')" && \
+    curl -sSfL $(curl -s https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://[^\"]*_linux_${ARCH_TFLINT}\.zip" | head -1) > tflint.zip && \
+    unzip -o tflint.zip -d /usr/local/bin && \
+    rm tflint.zip && \
     echo "TFLINT: $(tflint --version|grep version|awk '{print $3}')" | tee -a /versions
 
 # Install krew
@@ -280,6 +287,10 @@ RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bas
 RUN groupadd docker && usermod -aG docker ubuntu
 
 # install pip3 global packages
+# The packages are installed into the system python on purpose, the image is a
+# toolbox. Ubuntu marks the system python as managed, the packages would not
+# be installed without this.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN pip install \
     argparse \
     boto3 \
@@ -307,7 +318,7 @@ RUN pip install \
     urllib3 \
     virtualenv
 
-ENV HOME /home/ubuntu
+ENV HOME=/home/ubuntu
 
 # Copy default configs
 # Note: if you have a personalized tmux config, just mount it inside the container at runtime
@@ -328,7 +339,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # Replace zshrc
 RUN cp ${HOME}/.zshrc_original ${HOME}/.zshrc
 
-ARG KUBECTL_VERSION v1.27.3
+ARG KUBECTL_VERSION=v1.27.3
 
 # Install kubectl
 RUN cd "$(mktemp -d)" && \
@@ -338,7 +349,7 @@ RUN cd "$(mktemp -d)" && \
     install -o ubuntu -g ubuntu -m 0755 kubectl ${HOME}/.local/bin/kubectl && \
     rm kubectl
 
-ENV PATH ${HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+ENV PATH=${HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
 
 # Install plugins that are available only for amd64 platform
 RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
@@ -431,8 +442,8 @@ RUN git clone https://github.com/jonmosco/kube-ps1.git ${HOME}/.oh-my-zsh/custom
 # Disable VIM visual mode
 RUN echo "set mouse-=a" >> ~/.vimrc
 
-ENV TERM xterm-256color
-ENV SAML2AWS_KEYRING_BACKEND pass
+ENV TERM=xterm-256color
+ENV SAML2AWS_KEYRING_BACKEND=pass
 
 COPY entrypoint.sh /entrypoint.sh
 

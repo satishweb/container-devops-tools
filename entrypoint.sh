@@ -15,12 +15,12 @@ if [ "$DEBUG" = "1" ]; then
 fi
 
 # Check if HOME variable is defined, if not, set default value
-if [ -z "${HOME}" ]; then
+if [ -z "${HOME:-}" ]; then
     export HOME="/home/ubuntu"
 fi
 
 # Check if USER variable is defined, if not, set default value
-if [ -z "${USER}" ]; then
+if [ -z "${USER:-}" ]; then
     export USER="ubuntu"
 fi
 
@@ -39,7 +39,7 @@ eval "$(fixuid -q)"
 ## Setup home dir
 HOME_TEMPLATE=/home/ubuntu
 
-if [[ "$HOME" != "$HOME_TEMPLATE" && $HOME ]]; then
+if [[ "${HOME:-}" != "$HOME_TEMPLATE" && "${HOME:-}" ]]; then
     # If the HOME dir is not the default one, change ownership of the new HOME dir to the current user
     if [ ! -f "${HOME}/.keep" ]; then
         # Note: If HOME dir data is persisted and USER ID or GROUP ID is changed
