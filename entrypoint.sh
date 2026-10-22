@@ -15,18 +15,24 @@ if [ "$DEBUG" = "1" ]; then
 fi
 
 # Check if HOME variable is defined, if not, set default value
-if [ -z "${HOME}" ]; then
+if [ -z "${HOME:-}" ]; then
     export HOME="/home/ubuntu"
 fi
 
 # Check if USER variable is defined, if not, set default value
-if [ -z "${USER}" ]; then
+if [ -z "${USER:-}" ]; then
     export USER="ubuntu"
 fi
 
 print_divider() {
     printf "|---------------------------------------------------------------------------------------------\n"
 }
+
+## The keys of the host are made by the script of the package openssh-server
+## when the package is installed. They are not part of the image, they are
+## made again when the container starts.
+sudo ssh-keygen -A >/dev/null 2>&1 || true
+sudo make-ssl-cert generate-default-snakeoil --force-overwrite >/dev/null 2>&1 || true
 
 print_divider
 printf "| Starting Tools Container \n"
@@ -39,7 +45,7 @@ eval "$(fixuid -q)"
 ## Setup home dir
 HOME_TEMPLATE=/home/ubuntu
 
-if [[ "$HOME" != "$HOME_TEMPLATE" && $HOME ]]; then
+if [[ "${HOME:-}" != "$HOME_TEMPLATE" && "${HOME:-}" ]]; then
     # If the HOME dir is not the default one, change ownership of the new HOME dir to the current user
     if [ ! -f "${HOME}/.keep" ]; then
         # Note: If HOME dir data is persisted and USER ID or GROUP ID is changed
