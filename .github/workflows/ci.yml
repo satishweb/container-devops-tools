@@ -36,6 +36,11 @@ jobs:
           format: table
           output: /tmp/trivy.txt
           scanners: vuln,secret
+          # The gate looks at the packages of the operating system, they are
+          # the ones the image chooses. The findings of the programs that are
+          # part of the image are reported below, they can not be fixed in the
+          # image.
+          vuln-type: os
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
@@ -44,6 +49,22 @@ jobs:
       - name: Show the result of the scan
         if: always()
         run: cat /tmp/trivy.txt
+
+      - name: Report the findings of the programs in the image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: satishweb/container-devops-tools:ci
+          format: table
+          output: /tmp/trivy-all.txt
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+          trivyignores: .trivyignore
+
+      - name: Show the findings of the programs in the image
+        if: always()
+        run: cat /tmp/trivy-all.txt
 
       - name: Generate the bill of materials
         uses: aquasecurity/trivy-action@v0.36.0
