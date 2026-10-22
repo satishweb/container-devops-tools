@@ -13,7 +13,10 @@ RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/ap
 RUN apt-get install -y \
     ca-certificates \
     software-properties-common \
-    && apt clean -y
+    && apt clean -y && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 # Install desktop environment and other system tools
 RUN apt-get -y install \
@@ -70,7 +73,10 @@ RUN apt-get -y install \
     manpages-posix \
     manpages-posix-dev \
     zsh \
-    && apt clean -y
+    && apt clean -y && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 
 RUN locale-gen en_US.UTF-8
@@ -134,7 +140,10 @@ RUN apt-get update \
     gh \
     mtr \
     ranger \
-  && apt clean -y
+  && apt clean -y && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 # Install awscli2
 RUN cd "$(mktemp -d)" && \

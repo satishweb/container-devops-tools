@@ -28,6 +28,12 @@ print_divider() {
     printf "|---------------------------------------------------------------------------------------------\n"
 }
 
+## The keys of the host are made by the script of the package openssh-server
+## when the package is installed. They are not part of the image, they are
+## made again when the container starts.
+sudo ssh-keygen -A >/dev/null 2>&1 || true
+sudo make-ssl-cert generate-default-snakeoil --force-overwrite >/dev/null 2>&1 || true
+
 print_divider
 printf "| Starting Tools Container \n"
 
