@@ -207,7 +207,7 @@ RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/
 # Install tflint
 # The install script of the project is gone, the release of the project has
 # the binary as an asset.
-RUN ARCH_TFLINT="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/amd64/')" && \
+RUN ARCH_TFLINT="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')" && \
     curl -sSfL $(curl -s https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://[^\"]*_linux_${ARCH_TFLINT}\.zip" | head -1) > tflint.zip && \
     unzip -o tflint.zip -d /usr/local/bin && \
     rm tflint.zip && \
@@ -255,7 +255,7 @@ RUN cd $(mktemp -d) && \
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL -o telepresence https://app.getambassador.io/download/tel2/${OS}/${ARCH}/latest/telepresence && \
+    curl -sSfL -o telepresence https://github.com/telepresenceio/telepresence/releases/latest/download/telepresence-${OS}-${ARCH} && \
     install -c -m 0755 telepresence /usr/local/bin && \
     rm -f telepresence && \
     echo "TELEPRESENCE: $(telepresence version|grep Client|awk '{print $3}')" | tee -a /versions
