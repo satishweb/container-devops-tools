@@ -1,5 +1,5 @@
 # Author: Satish Gaikwad <satish@satishweb.com>
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 LABEL MAINTAINER="Satish Gaikwad <satish@satishweb.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -177,7 +177,7 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL -o ./kind https://kind.sigs.k8s.io/dl/v0.18.0/kind-${OS}-${ARCH} && \
+    curl -sSfL -o ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-${OS}-${ARCH} && \
     install -o root -g root -m 0755 kind /usr/local/bin/kind && \
     rm kind && \
     echo "KIND: $(kind --version|awk '{print $3}')" | tee -a /versions
@@ -186,7 +186,7 @@ RUN cd "$(mktemp -d)" && \
 RUN cd "$(mktemp -d)" && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL -o ./terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.2/terragrunt_${OS}_${ARCH} && \
+    curl -sSfL -o ./terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v1.2.2/terragrunt_${OS}_${ARCH} && \
     install -o root -g root -m 0755 terragrunt /usr/local/bin/terragrunt && \
     rm terragrunt && \
     echo "TERRAGRUNT: $(terragrunt --version|awk '{print $3}')" | tee -a /versions
@@ -207,7 +207,7 @@ RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/
 # Install tflint
 # The install script of the project is gone, the release of the project has
 # the binary as an asset.
-RUN ARCH_TFLINT="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/amd64/')" && \
+RUN ARCH_TFLINT="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')" && \
     curl -sSfL $(curl -s https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://[^\"]*_linux_${ARCH_TFLINT}\.zip" | head -1) > tflint.zip && \
     unzip -o tflint.zip -d /usr/local/bin && \
     rm tflint.zip && \
@@ -255,7 +255,7 @@ RUN cd $(mktemp -d) && \
 RUN cd $(mktemp -d) && \
     OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    curl -sSfL -o telepresence https://app.getambassador.io/download/tel2/${OS}/${ARCH}/latest/telepresence && \
+    curl -sSfL -o telepresence https://github.com/telepresenceio/telepresence/releases/latest/download/telepresence-${OS}-${ARCH} && \
     install -c -m 0755 telepresence /usr/local/bin && \
     rm -f telepresence && \
     echo "TELEPRESENCE: $(telepresence version|grep Client|awk '{print $3}')" | tee -a /versions
@@ -279,16 +279,23 @@ RUN cd $(mktemp -d) && \
     echo "SKAFFOLD: $(skaffold version)" | tee -a /versions
 
 # Install helm
-RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
-    echo "HELM: $(helm version)" | tee -a /versions
+ARG HELM_VERSION=v4.3.2
+RUN cd "$(mktemp -d)" && \
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    curl -sSfL -o helm.tar.gz "https://get.helm.sh/helm-${HELM_VERSION}-${OS}-${ARCH}.tar.gz" && \
+    tar -xzf helm.tar.gz && \
+    install -o root -g root -m 0755 "${OS}-${ARCH}/helm" /usr/local/bin/helm && \
+    rm -rf helm.tar.gz "${OS}-${ARCH}" && \
+    echo "HELM: $(helm version --short)" | tee -a /versions
 
 # Install SAML2AWS
 RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
-    VERSION=2.36.13 && \
+    VERSION=2.36.19 && \
     wget -c "https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_${OS}_${ARCH}.tar.gz" -O - | tar -xzv -C /usr/local/bin && \
     chmod u+x /usr/local/bin/saml2aws && \
-    echo "SAML2AWS: $(~/.local/bin/saml2aws --version)" | tee -a /versions
+    echo "SAML2AWS: $(/usr/local/bin/saml2aws --version)" | tee -a /versions
 
 # AI YAI
 RUN curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash
@@ -300,7 +307,10 @@ RUN groupadd docker && usermod -aG docker ubuntu
 # toolbox. Ubuntu marks the system python as managed, the packages would not
 # be installed without this.
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN pip install \
+# Some of the packages are also installed by apt as dependencies of the system
+# packages. The pip copies are installed next to them, without uninstalling the
+# apt copies that have no record of their files.
+RUN pip install --ignore-installed \
     argparse \
     boto3 \
     click \
@@ -348,7 +358,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # Replace zshrc
 RUN cp ${HOME}/.zshrc_original ${HOME}/.zshrc
 
-ARG KUBECTL_VERSION=v1.27.3
+ARG KUBECTL_VERSION=v1.37.2
 
 # Install kubectl
 RUN cd "$(mktemp -d)" && \
