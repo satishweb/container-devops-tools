@@ -307,7 +307,10 @@ RUN groupadd docker && usermod -aG docker ubuntu
 # toolbox. Ubuntu marks the system python as managed, the packages would not
 # be installed without this.
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN pip install \
+# Some of the packages are also installed by apt as dependencies of the system
+# packages. The pip copies are installed next to them, without uninstalling the
+# apt copies that have no record of their files.
+RUN pip install --ignore-installed \
     argparse \
     boto3 \
     click \
