@@ -37,10 +37,8 @@ env:
   REGISTRY_DOCKERHUB: docker.io
   REGISTRY_GHCR: ghcr.io
   IMAGE_NAME: container-devops-tools
-  REGISTRY_DOCKERHUB: docker.io
   DOCKERHUB_OWNER: satishweb
   PLATFORMS: linux/amd64,linux/arm64
-  DOCKERHUB_OWNER: satishweb
 
 jobs:
 
